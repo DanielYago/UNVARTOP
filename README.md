@@ -147,7 +147,6 @@ Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on the process for su
 
 * 1.1
 	* Reviewed Release
-    <!--* Various bug fixes and optimizations --->
 * 1.0 
     * Submission Release
 	* See [commit change](https://github.com/DanielYago/UNVARTOP/commits/master) or See [release history](https://github.com/DanielYago/UNVARTOP/releases)
@@ -179,6 +178,6 @@ This project is licensed under the **[gpl-3.0](https://www.gnu.org/licenses/gpl-
 <!-- SOURCES -->
 ## Sources
 
-[1] J. Oliver, D. Yago, J. Cante, and O. Lloberas-Valls. Variational approach to relaxed topological optimization: Closed form solutions for structural problems in a sequential pseudo-time framework. *Computer Methods in Applied Mechanics and Engineering*, 355:779-819, oct 2019. doi: [10.1016/j.cma.2019.06.038](https://doi.org/10.1016/j.cma.2019.06.038).
-[2] D. Yago, J. Cante, O. Lloberas-Valls, and J. Oliver. Topology optimization of thermal problems in a nonsmooth variational setting: closed-form optimality criteria. *Computational Mechanics*, 66:259-286, june 2020. doi: [10.1007/s00466-020-01850-0](https://doi.org/10.1007/s00466-020-01850-0). 
+[1] J. Oliver, D. Yago, J. Cante, and O. Lloberas-Valls. Variational approach to relaxed topological optimization: Closed form solutions for structural problems in a sequential pseudo-time framework. *Computer Methods in Applied Mechanics and Engineering*, 355:779-819, oct 2019. doi: [10.1016/j.cma.2019.06.038](https://doi.org/10.1016/j.cma.2019.06.038).  
+[2] D. Yago, J. Cante, O. Lloberas-Valls, and J. Oliver. Topology optimization of thermal problems in a nonsmooth variational setting: closed-form optimality criteria. *Computational Mechanics*, 66:259-286, june 2020. doi: [10.1007/s00466-020-01850-0](https://doi.org/10.1007/s00466-020-01850-0).  
 [3] D. Yago, J. Cante, O. Lloberas-Valls, and J. Oliver. Topology Optimization using the UNsmooth VARiational Topology OPtimization (UNVARTOP) method: an educational implementation in Matlab. *Structural and Multidisciplinary Optimization*, 2020. doi: [10.1007/s00158-020-02722-0](https://doi.org/10.1007/s00158-020-02722-0). 
