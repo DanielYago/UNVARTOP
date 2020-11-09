@@ -1,13 +1,14 @@
 %%%% %%%% %%%% %%%% %%%% %%%% %%%% %%%% %%%%%%%% %%%% %%%% %%%% %%%% %%%% %%%% %%%% %%%%
-% A 200 line topology optimization code using the Unsmooth Variational Topology method %
-%   for minimum compliance problems                                                    %
-%   Paper's Title                                                                      %
+% A 230 line topology optimization code using the Unsmooth Variational Topology method %
+%   for structural problems - 4.6 Michell structure multi-load                         %
+%   Paper's Title																	   %
 %		Topology Optimization using the UNsmooth VARiational Topology OPtimization 	   %
 %			(UNVARTOP) method: an educational implementation in Matlab                 %
 %   Authors                                                                            %
 %       Daniel Yago, Juan Carlos Cante, Oriol Lloberas-Valls, Javier Oliver            %
 % Versions                                                                             %
-%   26/3/2020 - Submission version (minimum compliance with Anderson-Bjorck method)    %
+%   26/03/2020 - Submission version (midpoint method)                            	   %
+%   09/11/2020 - Reviewed version (midpoint method) - Examples added               	   %
 % GitHub repository																	   %
 %	This code and other modifications of it can be downloaded from the Website:		   %
 %		https://github.com/DanielYago/UNVARTOP	. Please send your comments to		   %
@@ -26,7 +27,7 @@
 %	You should have received a copy of the GNU General Public License along with this  %
 %	program.  If not, see <https://www.gnu.org/licenses/>.							   %
 %%%% %%%% %%%% %%%% %%%% %%%% %%%% %%%% %%%%%%%% %%%% %%%% %%%% %%%% %%%% %%%% %%%% %%%%
-function [iter,J] = UNVARTOP_2D_compliance_AB (nelx,nely,nsteps,Vol0,Vol,k,tau)
+function [iter,J] = UNVARTOP_2D_Michell_multi_load (nelx,nely,nsteps,Vol0,Vol,k,tau)
 n_dim = 2; n_unkn = 2; n_nodes = 4; n_gauss = 4; n = (nelx+1)*(nely+1); h_e = 1; alpha0 = 1e-3;
 iter_max_step = 20; iter_min_step = 4; iter_max = 500;
 opt = struct('Plot_top_iso',1,'Plot_vol_step',1,'EdgeColor','none','solver_Lap','direct');
@@ -36,19 +37,30 @@ nodenrs = reshape(1:n,1+nely,1+nelx);
 nodeVec = reshape(nodenrs(1:end-1,1:end-1)+1,nelx*nely,1); clear nodenrs;
 connect = nodeVec+[0 nely+[1 0] -1]; clear nodeVec;
 %% Loads and boundary setting for Cantilever beam
-F = sparse(n_unkn*n,1);
-U = zeros(n_unkn*n,1);
-F(n_unkn*find(coord(:,2)==0 & coord(:,1)==nelx),1) = -0.01*nelx;
-fixed_dofs = reshape(n_unkn*find(coord(:,1)==0)+(-n_unkn+1:0),1,[]);
+case_type='COMPLIANCE'; load_states=2;
+F = sparse(n_unkn*n,load_states);
+U = zeros(n_unkn*n,load_states);
+F(n_unkn*find(coord(:,2)==0&coord(:,1)==round(nelx/2))-1,1) = -0.01*nelx;
+F(n_unkn*find(coord(:,2)==0&coord(:,1)==round(nelx/2)),1) = -2*0.01*nelx;
+F(n_unkn*find(coord(:,2)==0&coord(:,1)==round(nelx/2))-1,2) = 0.01*nelx;
+F(n_unkn*find(coord(:,2)==0&coord(:,1)==round(nelx/2)),2) = -2*0.01*nelx;
+fixed_dofs = reshape(n_unkn*find((coord(:,1)==0&coord(:,2)==0)|(coord(:,1)==nelx&coord(:,2)==0))+(-n_unkn+1:0),1,[]);
 active_node = []; passive_node = [];
 free_dofs = setdiff(1:(n_unkn*n),fixed_dofs);
 U(fixed_dofs,:) = 0;
+if strcmp(case_type,'MECHANISM') %#ok<ALIGN>
+	id_in  = find(F(:,1)); id_in  = sub2ind(n_unkn*(nely+1)*(nelx+1)*[1 1],id_in,id_in);
+	id_out = find(F(:,2)); id_out = sub2ind(n_unkn*(nely+1)*(nelx+1)*[1 1],id_out,id_out);
+else; id_in=[]; id_out=[]; end
 %% Parameter definition
-m = 5; E0 = 1; alpha = 1e-6; beta = nthroot(alpha,m); nu = 0.3;
+switch case_type
+	case 'COMPLIANCE'; m = 5; E0 = 1; alpha = 1e-6; beta = nthroot(alpha,m); nu = 0.3;
+	case 'MECHANISM';  m = 3; E0 = 1; alpha = 1e-2; beta = nthroot(alpha,m); nu = 0.3;
+end
 %% Prepare animation
 psi_vec = zeros(size(coord,1),nsteps+1);
 chi_vec = zeros(size(connect,1),nsteps+1);
-U_vec = zeros(n_unkn*size(coord,1),1,nsteps+1);
+U_vec = zeros(n_unkn*size(coord,1),load_states,nsteps+1);
 %% Finite element analysis preparation
 [posgp4,W4] = gauss_points(n_gauss);
 [posgp1,W1] = gauss_points(1);
@@ -90,28 +102,35 @@ for i_step = 1:nsteps
 	Tol_chi = 1;
 	Tol_lambda = 1;
 	iter_step = 1;
-	while (((Tol_chi>1e-1 || Tol_lambda>1e-1) && iter_step<iter_max_step) || iter_step<=iter_min_step)
+	while (((Tol_chi>1e-1 || Tol_lambda>1e-1) && iter_step<iter_max_step) || iter_step<=iter_min_step )
 		% FE-analysis
-		[K] = assmebly_stiff_mat (chi,KE,KE_cut,beta,m,iK,jK,n_unkn,nelx,nely);
+		[K] = assmebly_stiff_mat (chi,KE,KE_cut,beta,m,iK,jK,n_unkn,nelx,nely,case_type,id_in,id_out);
 		U(free_dofs,:) = K(free_dofs,free_dofs) \ (F(free_dofs,:) - K(free_dofs,fixed_dofs)*U(fixed_dofs,:));
-		if iter == 1; U_vec(:,:,1)=U; J_ref = full(abs(sum(sum(F.*U,1),2))); end; J = full(sum(sum(F.*U,1),2))/J_ref;
-		% Calculate sensitivities
+		% Calculate sensitivities and apply Laplacian regularization
 		Energy = zeros(n_gauss,nelx*nely);
 		id = chi==1|chi==0; int_chi = interp_property (m,m-1,beta,chi(id));
-		u_e = reshape(U(edofMat(id,:)',1),n_nodes*n_unkn,[]); w_e = u_e;
-		for i=1:n_gauss; Energy(i,id) = sum(w_e.*(KE_i(:,:,i)*u_e),1); end
-		Energy(:,id) = int_chi.*Energy(:,id);
+		if strcmp(case_type,'COMPLIANCE'); nload = load_states; else; nload = 1; end
+		for i_load=1:nload
+			u_e = reshape(U(edofMat(id,:)',i_load),n_nodes*n_unkn,[]); w_e = u_e;
+			if strcmp(case_type,'MECHANISM'); w_e = -reshape(U(edofMat(id,:)',i_load+1),n_nodes*n_unkn,[]); end
+			for i=1:n_gauss; Energy(i,id) = Energy(i,id) + sum(w_e.*(KE_i(:,:,i)*u_e),1); end
+		end; Energy(:,id) = int_chi.*Energy(:,id);
 		id = ~id; int_chi = interp_property (m,m-1,beta,chi(id));
-		u_e = reshape(U(edofMat(id,:)',1),n_nodes*n_unkn,[]); w_e = u_e;
-		Energy(:,id) = repmat(int_chi.*sum(w_e.*(K_cut*u_e),1),n_gauss,1);
-		if iter == 1; xi_shift = min(0,min(Energy(:))); xi_norm = max(range(Energy(:)),max(Energy(:))); end
-		% Apply Laplacian regularization
+		for i_load=1:nload
+			u_e = reshape(U(edofMat(id,:)',i_load),n_nodes*n_unkn,[]); w_e = u_e;
+			if strcmp(case_type,'MECHANISM'); w_e = -reshape(U(edofMat(id,:)',i_load+1),n_nodes*n_unkn,[]); end
+			Energy(:,id) = Energy(:,id) + repmat(sum(w_e.*(K_cut*u_e),1),n_gauss,1);
+		end; Energy(:,id) = int_chi.*Energy(:,id);
+		if iter == 1; xi_shift = min(0,min(Energy(:))); xi_norm = max(range(Energy(:)),max(Energy(:)));
+			U_vec(:,:,1)=U; if strcmp(case_type,'COMPLIANCE'); J_ref = full(abs(sum(sum(F.*U,1),2))); else; J_ref = -abs(F(:,2)'*U(:,1)); end
+		end
 		xi_int = N_T*(Energy-xi_shift*chi)/xi_norm;
 		if strcmp(opt.solver_Lap,'direct')
 			xi = LF'\(LF\accumarray(i_xi,xi_int(:),[n 1]));
 		else
 			[xi,flag] = minres(K_Lap,accumarray(i_xi,xi_int(:),[n 1]),1e-6,500,LF,LF'); assert(flag == 0);
 		end
+		if strcmp(case_type,'COMPLIANCE'); J = full(sum(sum(F.*U,1),2))/J_ref; else; J = F(:,2)'*U(:,1)/J_ref; end
 		% Compute topology
 		[lambda,chi_n,psi,vol] = find_volume (xi,connect,active_node,passive_node,t_ref,lambda,alpha0);
 		lambda_vec = [lambda_vec,lambda];
@@ -130,8 +149,8 @@ for i_step = 1:nsteps
 		[fhandle6,J_vec,vol_vec] = plot_volume_iter(fhandle6,i_step,J_vec,J,vol_vec,vol,opt.Plot_vol_step,6,'Cost function Step','#step','+-b');
 		psi_vec(:,i_step+1)=psi; chi_vec(:,i_step+1)=chi'; U_vec(:,:,i_step+1)=U;
 	end
-	if iter_step >= iter_max_step; warning('UNVARTOP_2D_compliance_AB:Max_iter_step','Maximum number of in-step iterations achieved.'); break; end
-	if iter > iter_max; warning('UNVARTOP_2D_compliance_AB:Max_iter','Maximum number of iterations achieved.'); break; end
+	if iter_step >= iter_max_step; warning('UNVARTOP_2D:Max_iter_step','Maximum number of in-step iterations achieved.'); break; end
+	if iter > iter_max; warning('UNVARTOP_2D:Max_iter','Maximum number of iterations achieved.'); break; end
 end
 %% Animation
 Topology_evolution(coord,connect,[Vol0,vol_vec],psi_vec,chi_vec,U_vec);
@@ -151,6 +170,9 @@ Det_Jacobian = det(Jacobian_mat);
 cart_deriv = Jacobian_mat\dshape;
 BE = zeros(3,n_unkn*n_nodes); BE([1 3],1:n_unkn:end) = cart_deriv; BE([3 2],2:n_unkn:end) = cart_deriv;
 %%%% %%%% %%%% %%%% %%%% %%%% %%%% %%%% %%%%
+function [DE] = D_matrix_strain(E,nu) %Planestrain
+DE = E/((1+nu)*(1-2*nu))*[(1-nu) nu 0;nu (1-nu) 0;0 0 (1-2*nu)/2];
+%%%% %%%% %%%% %%%% %%%% %%%% %%%% %%%% %%%%
 function [DE] = D_matrix_stress(E,nu) %Planestress
 DE = E/(1-nu^2)*[1 nu 0; nu 1 0;0 0 (1-nu)/2];
 %%%% %%%% %%%% %%%% %%%% %%%% %%%% %%%% %%%%
@@ -158,9 +180,13 @@ function [coeff] = interp_property (m,n,beta,chi)
 coeff = chi + (1-chi).*beta;
 coeff = double(m==n).*coeff.^m + double(m~=n).*m*coeff.^n*(1-beta);
 %%%% %%%% %%%% %%%% %%%% %%%% %%%% %%%% %%%%
-function [K] = assmebly_stiff_mat (chi,KE,KE_cut,beta,m,iK,jK,n_unkn,nelx,nely)
+function [K] = assmebly_stiff_mat (chi,KE,KE_cut,beta,m,iK,jK,n_unkn,nelx,nely,case_type,id_in,id_out)
 sK = interp_property(m,m,beta,chi).*KE(:); sK(:,chi~=1&chi~=0) = interp_property(m,m,beta,chi(chi~=1&chi~=0)).*KE_cut(:);
 K = sparse(iK,jK,sK,n_unkn*(1+nelx)*(1+nely),n_unkn*(1+nelx)*(1+nely)); K = (K+K')/2; clear sK;
+if strcmp(case_type,'MECHANISM')
+	K(id_in)  = K(id_in)  + 0.002;
+	K(id_out) = K(id_out) + 0.002;
+end
 %%%% %%%% %%%% %%%% %%%% %%%% %%%% %%%% %%%%
 function [lambda,chi,psi,vol,Tol_constr] = find_volume (xi,connect,active_node,passive_node,t_ref,lambda,alpha0)
 l1 = min(xi); c1 = t_ref; l2 = max(xi); c2 = t_ref-1; Tol_constr = 1; iter=1;
@@ -168,7 +194,10 @@ if lambda>l1 && lambda<l2
 	[chi,psi,vol,l1,l2,c1,c2,Tol_constr] = compute_volume_lambda(xi,connect,active_node,passive_node,t_ref,lambda,l1,l2,c1,c2,alpha0);
 end
 while (abs(Tol_constr)>1e-4) && iter<1000
-	lambda = l1 - c1*(l2-l1)/(c2-c1);
+	%middle point
+	lambda = 0.5*(l1+l2);
+	%Regula falsi
+	%lambda = l1 - c1*(l2-l1)/(c2-c1);
 	[chi,psi,vol,l1,l2,c1,c2,Tol_constr] = compute_volume_lambda(xi,connect,active_node,passive_node,t_ref,lambda,l1,l2,c1,c2,alpha0);
 	iter = iter + 1;
 end
@@ -177,8 +206,11 @@ function [chi,psi,vol,l1,l2,c1,c2,Tol_constr] = compute_volume_lambda(xi,connect
 psi = xi - lambda; psi(passive_node) = -alpha0; psi(active_node) = alpha0;
 [vol,chi] = compute_volume (psi,connect);
 Tol_constr = -(vol-t_ref);
-if c2*Tol_constr<=0; l1=l2; c1=c2; l2=lambda; c2=Tol_constr;
-else; g=1-Tol_constr/c2; g=(g-0.5)*(g>0)+0.5; l2=lambda; c1=g*c1; c2=Tol_constr; end
+%Middle point & Regula falsi
+	if Tol_constr > 0, l1 = lambda; c1 = Tol_constr; else; l2 = lambda; c2 = Tol_constr; end
+%Anderson-Bjorck algorithm with illinois algorithm
+	%if c2*Tol_constr<=0; l1=l2; c1=c2; l2=lambda; c2=Tol_constr;
+	%else; g=1-Tol_constr/c2; g=(g-0.5)*(g>0)+0.5; l2=lambda; c1=g*c1; c2=Tol_constr; end
 %%%% %%%% %%%% %%%% %%%% %%%% %%%% %%%% %%%%
 function [volume,chi] = compute_volume (psi,connect)
 P = [-1 -1;1 -1;1 1;-1 1]; dvol = 1/4;

@@ -27,7 +27,7 @@
 %	program.  If not, see <https://www.gnu.org/licenses/>.							   %
 %%%% %%%% %%%% %%%% %%%% %%%% %%%% %%%% %%%%%%%% %%%% %%%% %%%% %%%% %%%% %%%% %%%% %%%%
 function [iter,J] = UNVARTOP_2D (nelx,nely,nsteps,Vol0,Vol,k,tau)
-n_dim = 2; n_unkn = 2; n_nodes = 4; ngaus = 4; n = (nelx+1)*(nely+1); h_e = 1; alpha0 = 1e-3;
+n_dim = 2; n_unkn = 2; n_nodes = 4; n_gauss = 4; n = (nelx+1)*(nely+1); h_e = 1; alpha0 = 1e-3;
 iter_max_step = 20; iter_min_step = 4; iter_max = 500;
 opt = struct('Plot_top_iso',1,'Plot_vol_step',1,'EdgeColor','none','solver_Lap','direct');
 %% Vector for assembling matrices
@@ -58,12 +58,12 @@ psi_vec = zeros(size(coord,1),nsteps+1);
 chi_vec = zeros(size(connect,1),nsteps+1);
 U_vec = zeros(n_unkn*size(coord,1),load_states,nsteps+1);
 %% Finite element analysis preparation
-[posgp4,W4] = gauss_points(ngaus);
+[posgp4,W4] = gauss_points(n_gauss);
 [posgp1,W1] = gauss_points(1);
 [DE] = D_matrix_stress(E0,nu);
 KE = zeros(n_nodes*n_unkn,n_nodes*n_unkn);
-KE_i = zeros(n_nodes*n_unkn,n_nodes*n_unkn,ngaus);
-for i=1:ngaus
+KE_i = zeros(n_nodes*n_unkn,n_nodes*n_unkn,n_gauss);
+for i=1:n_gauss
 	[BE,Det_Jacobian] = B_matrix(posgp4(:,i),n_unkn,n_nodes);
 	KE_i(:,:,i) = BE'*DE*BE;
 	KE = KE + KE_i(:,:,i)*Det_Jacobian*W4(i);
@@ -103,19 +103,19 @@ for i_step = 1:nsteps
 		[K] = assmebly_stiff_mat (chi,KE,KE_cut,beta,m,iK,jK,n_unkn,nelx,nely,case_type,id_in,id_out);
 		U(free_dofs,:) = K(free_dofs,free_dofs) \ (F(free_dofs,:) - K(free_dofs,fixed_dofs)*U(fixed_dofs,:));
 		% Calculate sensitivities and apply Laplacian regularization
-		Energy = zeros(ngaus,nelx*nely);
+		Energy = zeros(n_gauss,nelx*nely);
 		id = chi==1|chi==0; int_chi = interp_property (m,m-1,beta,chi(id));
 		if strcmp(case_type,'COMPLIANCE'); nload = load_states; else; nload = 1; end
 		for i_load=1:nload
 			u_e = reshape(U(edofMat(id,:)',i_load),n_nodes*n_unkn,[]); w_e = u_e;
 			if strcmp(case_type,'MECHANISM'); w_e = -reshape(U(edofMat(id,:)',i_load+1),n_nodes*n_unkn,[]); end
-			for i=1:ngaus; Energy(i,id) = Energy(i,id) + sum(w_e.*(KE_i(:,:,i)*u_e),1); end
+			for i=1:n_gauss; Energy(i,id) = Energy(i,id) + sum(w_e.*(KE_i(:,:,i)*u_e),1); end
 		end; Energy(:,id) = int_chi.*Energy(:,id);
 		id = ~id; int_chi = interp_property (m,m-1,beta,chi(id));
 		for i_load=1:nload
 			u_e = reshape(U(edofMat(id,:)',i_load),n_nodes*n_unkn,[]); w_e = u_e;
 			if strcmp(case_type,'MECHANISM'); w_e = -reshape(U(edofMat(id,:)',i_load+1),n_nodes*n_unkn,[]); end
-			Energy(:,id) = Energy(:,id) + repmat(sum(w_e.*(K_cut*u_e),1),ngaus,1);
+			Energy(:,id) = Energy(:,id) + repmat(sum(w_e.*(K_cut*u_e),1),n_gauss,1);
 		end; Energy(:,id) = int_chi.*Energy(:,id);
 		if iter == 1; xi_shift = min(0,min(Energy(:))); xi_norm = max(range(Energy(:)),max(Energy(:)));
 			U_vec(:,:,1)=U; if strcmp(case_type,'COMPLIANCE'); J_ref = full(abs(sum(sum(F.*U,1),2))); else; J_ref = -abs(F(:,2)'*U(:,1)); end
@@ -151,8 +151,8 @@ end
 %% Animation
 Topology_evolution(coord,connect,[Vol0,vol_vec],psi_vec,chi_vec,U_vec);
 %%%% %%%% %%%% %%%% %%%% %%%% %%%% %%%% %%%%
-function [posgp,W] = gauss_points (ngauss)
-if ngauss==1; s = 0; w = 2; else; s = sqrt(3)/3*[-1 1]; w = [1 1]; end
+function [posgp,W] = gauss_points (n_gauss)
+if n_gauss==1; s = 0; w = 2; else; s = sqrt(3)/3*[-1 1]; w = [1 1]; end
 [s,t] = meshgrid(s,s); posgp = [s(:) t(:)]';
 W=w'*w; W=W(:)';
 %%%% %%%% %%%% %%%% %%%% %%%% %%%% %%%% %%%%

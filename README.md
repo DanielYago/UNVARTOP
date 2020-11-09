@@ -8,14 +8,14 @@
 [![GitHub issues-closed](https://img.shields.io/github/issues-closed/DanielYago/UNVARTOP.svg)](https://GitHub.com/DanielYago/UNVARTOP/issues?q=is%3Aissue+is%3Aclosed)
 [![GitHub contributors](https://img.shields.io/github/contributors/DanielYago/UNVARTOP.svg)](https://GitHub.com/DanielYago/UNVARTOP/graphs/contributors/)
 [![GPLv3 license](https://img.shields.io/badge/License-GPLv3-blue.svg)](http://perso.crans.org/besson/LICENSE.html) 
-<!--
+[![DOI:10.1007/s00158-020-02722-0](https://zenodo.org/badge/DOI/10.1007/s00158-020-02722-0.svg)](https://doi.org/10.1007/s00158-020-02722-0)<!--
 [![Github all releases](https://img.shields.io/github/downloads/DanielYago/UNVARTOP/total.svg)](https://GitHub.com/DanielYago/UNVARTOP/releases/)>
 [![GitHub forks](https://img.shields.io/github/forks/DanielYago/UNVARTOP.svg?style=social&label=Fork&maxAge=2592000)](https://GitHub.com/DanielYago/UNVARTOP/network/)
 [![GitHub watchers](https://img.shields.io/github/watchers/DanielYago/UNVARTOP.svg?style=social&label=Watch&maxAge=2592000)](https://GitHub.com/DanielYago/UNVARTOP/watchers/)
-[![DOI:XXX](https://zenodo.org/badge/DOI/XXX.svg)](https://doi.org/XXX)
 -->
 
 <!-- TABLE OF CONTENTS -->
+
 ## Table of Contents
 
 - [About the project](#about-the-project)
@@ -36,7 +36,7 @@
 <!-- ABOUT THE PROJECT -->
 ## About the project
 
-This is the code for the paper: D. Yago, J. Cante, O. Lloberas-Valls, and J. Oliver. Topology Optimization using the UNsmooth VARiational Topology OPtimization (UnVarTop) method: an educational implementation in Matlab. *Structural and Multidisciplinary Optimization*, 2020. [[link]()] <!-- add link -->
+This is the code for the paper: D. Yago, J. Cante, O. Lloberas-Valls, and J. Oliver. Topology Optimization using the UNsmooth VARiational Topology OPtimization (UNVARTOP) method: an educational implementation in Matlab. *Structural and Multidisciplinary Optimization*, 2020. [[10.1007/s00158-020-02722-0](https://doi.org/10.1007/s00158-020-02722-0)] 
 
 The *unsmooth variational topology optimization* (UNVARTOP) approach is substantiated in a *bi-material setting*, via the *ersatz material* approach, defined by means of the *characteristic function*. Furthermore, sharp boundaries are obtained thanks to the use of a *discrimination function*, from which the *characteristic function* is computed. 
 
@@ -87,9 +87,8 @@ $ git clone https://github.com/DanielYago/UNVARTOP.git
 	<img src="/Images/Cantilever_topology.png" alt="Topology" width="400"> <img src="/Images/Cantilever_cost.png" alt="Cost_function" width="400">
 	<!--![Topology](/Images/Cantilever_topology.png) ![Cost_function](/Images/Cantilever_cost.png)-->
   </p>
-  
   **Figure 2 and 3:** Cantilever beam: optimal topology for `t=0.5` and evolution of the cost function, respectively.
-
+  
 * In addition, a GUI is generated with the topology evolution
 
   <p align="center">
@@ -97,7 +96,8 @@ $ git clone https://github.com/DanielYago/UNVARTOP.git
 	<!--![GUI](/Images/Cantilever_GUI.png)-->
   </p>
   
- **Figure 4:** Cantilever beam: graphical user interface
+
+ **Figure 4:** Cantilever beam: graphical user interface.
 
   where the deformed topology can be animated throughout the optimization by means of the buttons. For further information, please read the paper.
 
@@ -108,7 +108,7 @@ $ git clone https://github.com/DanielYago/UNVARTOP.git
   <!--![Gif](/Images/Cantilever_gif.gif)-->
 </p>
 
- **Figure 5:** Cantilever beam: topology optimization animation
+ **Figure 5:** Cantilever beam: topology optimization animation.
 
 <!-- FEATURES -->
 ## Features
@@ -117,8 +117,8 @@ The algorithm is adapted in order to optimize:
  - [Minimum mean compliance](/Source_codes/Topology_optimization_problems/UNVARTOP_2D_compliance.m)
  - [Multi-load mean compliance](/Source_codes/Topology_optimization_problems/UNVARTOP_2D_multiload.m)
  - [Compliant mechanisms](/Source_codes/Topology_optimization_problems/UNVARTOP_2D_complmechanism.m)
- 
-Additionally, [UnVarTOp](/Source_codes/UNVARTOP_2D.m) combines the three topology optimization problems in a single code.
+
+Additionally, [UNVARTOP](/Source_codes/UNVARTOP_2D.m) combines the three topology optimization problems in a single code.
 
 <!-- EXTENSIONS -->
 ## Extensions
@@ -128,7 +128,7 @@ Some of the extensions detailed in the paper are also implemented:
  - [Anderson-Björck with Illinois algorithm](/Source_codes/Extensions/UNVARTOP_2D_compliance_AB.m)
  - [Augmented Lagrangian method](/Source_codes/Extensions/UNVARTOP_AL_2D.m)
 
-Other numerical examples can be found in [the article](). <!-- add link -->
+Other numerical examples can be found in [the article](https://doi.org/10.1007/s00158-020-02722-0) or in [Examples](/Source_codes/Examples/). 
 
 <!-- CONTRIBUTING -->
 ## Contributing
@@ -145,9 +145,9 @@ Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on the process for su
 <!-- VERSION HISTORY -->
 ## Version History
 
-<!--* 1.1
+* 1.1
 	* Reviewed Release
-    * Various bug fixes and optimizations --->
+    <!--* Various bug fixes and optimizations --->
 * 1.0 
     * Submission Release
 	* See [commit change](https://github.com/DanielYago/UNVARTOP/commits/master) or See [release history](https://github.com/DanielYago/UNVARTOP/releases)
@@ -166,6 +166,7 @@ Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on the process for su
 In case you find any errors or you have any suggestion, please send an email to `daniel.yago@upc.edu` or fork the repository and create a pull request.
 
 <!-- LICENSE -->
+
 ## License
 
 This project is licensed under the **[gpl-3.0](https://www.gnu.org/licenses/gpl-3.0.html)** License - see the [LICENSE](LICENSE) file for more details.
@@ -178,6 +179,6 @@ This project is licensed under the **[gpl-3.0](https://www.gnu.org/licenses/gpl-
 <!-- SOURCES -->
 ## Sources
 
-[1] J. Oliver, D. Yago, J. Cante, and O. Lloberas-Valls. Variational approach to relaxed topological optimization: Closed form solutions for structural problems in a sequential pseudo-time framework. *Computer Methods in Applied Mechanics and Engineering*, 355:779-819, oct 2019. doi: [10.1016/j.cma.2019.06.038](https://doi.org/10.1016/j.cma.2019.06.038).  
-[2] D. Yago, J. Cante, O. Lloberas-Valls, and J. Oliver. Topology optimization of thermal problems in a nonsmooth variational setting: closed-form optimality criteria. *Computational Mechanics*, 2020. Paper in press.  <!-- add link -->  
-[3] D. Yago, J. Cante, O. Lloberas-Valls, and J. Oliver. Topology Optimization using the UNsmooth VARiational Topology OPtimization (UnVarTop) method: an educational implementation in Matlab. *Structural and Multidisciplinary Optimization*, 2020. Paper under review. <!-- add link -->  
+[1] J. Oliver, D. Yago, J. Cante, and O. Lloberas-Valls. Variational approach to relaxed topological optimization: Closed form solutions for structural problems in a sequential pseudo-time framework. *Computer Methods in Applied Mechanics and Engineering*, 355:779-819, oct 2019. doi: [10.1016/j.cma.2019.06.038](https://doi.org/10.1016/j.cma.2019.06.038).
+[2] D. Yago, J. Cante, O. Lloberas-Valls, and J. Oliver. Topology optimization of thermal problems in a nonsmooth variational setting: closed-form optimality criteria. *Computational Mechanics*, 66:259-286, june 2020. doi: [10.1007/s00466-020-01850-0](https://doi.org/10.1007/s00466-020-01850-0). 
+[3] D. Yago, J. Cante, O. Lloberas-Valls, and J. Oliver. Topology Optimization using the UNsmooth VARiational Topology OPtimization (UNVARTOP) method: an educational implementation in Matlab. *Structural and Multidisciplinary Optimization*, 2020. doi: [10.1007/s00158-020-02722-0](https://doi.org/10.1007/s00158-020-02722-0). 
